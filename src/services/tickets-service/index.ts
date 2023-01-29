@@ -1,4 +1,5 @@
 import { notFoundError } from "@/errors";
+import enrollmentRepository from "@/repositories/enrollment-repository";
 import ticketRepository from "@/repositories/ticket-repository";
 
 async function getAllTickets() {
@@ -16,13 +17,25 @@ async function getTicketId(userId: number) {
   if (!result) {
     return notFoundError();
   }
-  const ticketId = await ticketRepository.findManyTicket(result.id);
-  if (!ticketId) {
+  const enrollment = await enrollmentRepository.findUserId(userId);
+  if (!enrollment) {
     return notFoundError();
   }
-  return ticketId;
+  return result;
 }
 
-const ticketService = { getAllTickets, getTicketId };
+async function postOneTicket(id: number, userId: number) {
+  const result = await enrollmentRepository.findUserId(userId);
+
+  if (!result) {
+    return notFoundError();
+  }
+
+  const newTicket = await ticketRepository.postNewTicket(result.id, id);
+
+  return newTicket;
+}
+
+const ticketService = { getAllTickets, getTicketId, postOneTicket };
 
 export default ticketService;

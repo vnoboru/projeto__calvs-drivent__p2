@@ -8,7 +8,7 @@ async function getAllTicketsTypes(req: AuthenticatedRequest, res: Response) {
     const result = await ticketService.getAllTickets();
     return res.status(httpStatus.OK).send(result);
   } catch {
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR);
+    return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 
@@ -16,10 +16,34 @@ async function getTickets(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.userId;
     const result = await ticketService.getTicketId(userId);
-    res.status(httpStatus.OK).send(result);
+    if (!result) {
+      return res.sendStatus(404);
+    }
+    return res.status(httpStatus.OK).send(result);
   } catch {
-    res.sendStatus(httpStatus.NOT_FOUND);
+    return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 
-export { getAllTicketsTypes, getTickets };
+async function postTicket(req: AuthenticatedRequest, res: Response) {
+  const id: number = req.body.ticketTypeId;
+
+  try {
+    if (!id) throw { name: "BadRequest" };
+    const result = await ticketService.postOneTicket(id, req.userId);
+
+    res.status(httpStatus.CREATED).send(result);
+  } catch (error) {
+    if (error.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+
+    if (error.name === "BadRequest") {
+      return res.sendStatus(httpStatus.BAD_REQUEST);
+    }
+
+    return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
+  }
+}
+
+export { getAllTicketsTypes, getTickets, postTicket };

@@ -5,7 +5,7 @@ function findMany() {
 }
 
 function findManyId(userId: number) {
-  return prisma.ticket.findFirst({ where: { Enrollment: { userId } } });
+  return prisma.ticket.findFirst({ where: { Enrollment: { userId } }, include: { TicketType: true } });
 }
 
 function findManyTicket(id: number) {
@@ -19,10 +19,24 @@ function findManyTicket(id: number) {
   });
 }
 
+async function postNewTicket(enrollmentId: number, ticketTypeId: number) {
+  return prisma.ticket.create({
+    data: {
+      enrollmentId,
+      ticketTypeId,
+      status: "RESERVED",
+    },
+    include: {
+      TicketType: true,
+    },
+  });
+}
+
 const ticketRepository = {
   findMany,
   findManyId,
   findManyTicket,
+  postNewTicket,
 };
 
 export default ticketRepository;
