@@ -4,35 +4,34 @@ import ticketRepository from "@/repositories/ticket-repository";
 
 async function getAllTickets() {
   const result = await ticketRepository.findMany();
-
-  if (!result) {
-    throw notFoundError();
-  }
-
   return result;
 }
 
 async function getTicketId(userId: number) {
-  const result = await ticketRepository.findManyId(userId);
-  if (!result) {
-    return notFoundError();
+  const ticket = await ticketRepository.findManyId(userId);
+  if (!ticket) {
+    throw notFoundError();
   }
+
   const enrollment = await enrollmentRepository.findUserId(userId);
   if (!enrollment) {
-    return notFoundError();
+    throw notFoundError();
   }
-  return result;
+
+  return ticket;
 }
 
 async function postOneTicket(id: number, userId: number) {
   const result = await enrollmentRepository.findUserId(userId);
-
   if (!result) {
-    return notFoundError();
+    throw notFoundError();
+  }
+
+  if (!id || !userId) {
+    throw { name: "BadRequestError" };
   }
 
   const newTicket = await ticketRepository.postNewTicket(result.id, id);
-
   return newTicket;
 }
 
